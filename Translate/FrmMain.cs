@@ -54,22 +54,34 @@ namespace Translate
             System.Windows.Forms.MessageBox.Show(i.ToString());
         }
 
+        bool shift = false;
+        bool alt = false;
+        bool q = false;
+
+
         private void hook_KeyDown(object sender, KeyEventArgs e)
         {
-            // tb1.Text += (char)e.KeyData;
-
-
-            //判断按下的键（Alt + A） 
-            if (e.KeyValue == (int)Keys.W && (int)System.Windows.Forms.Control.ModifierKeys == (int)Keys.Alt)
+            if (e.KeyValue == (int)Keys.LShiftKey)
             {
-
-                this.IsShowForm = !this.IsShowForm;
-                
+                shift = true;
+            }
+            if (e.KeyValue == 164)
+            {
+                alt = true;
             }
 
-
-
-
+            if (e.KeyValue == (int)Keys.Q)
+            {
+                q = true;
+            }
+            //if (e.KeyValue == (int)Keys.Q && (int)System.Windows.Forms.Control.ModifierKeys == (int)Keys.Alt)
+            if (shift && alt && q)
+            {
+                this.IsShowForm = !this.IsShowForm;
+                shift = false;
+                alt = false;
+                q = false;
+            }
         }
 
 
