@@ -18,7 +18,6 @@ namespace Translate
             InitializeComponent();
             k_hook = new KeyboardHook();
             k_hook.KeyDownEvent += new System.Windows.Forms.KeyEventHandler(hook_KeyDown);//钩住键按下 
-            //k_hook.KeyPressEvent += K_hook_KeyPressEvent;
             k_hook.Start();//安装键盘钩子
         }
 
@@ -46,41 +45,13 @@ namespace Translate
                 
             }
         }
-
-        private void K_hook_KeyPressEvent(object sender, KeyPressEventArgs e)
-        {
-            //tb1.Text += e.KeyChar;
-            int i = (int)e.KeyChar;
-            System.Windows.Forms.MessageBox.Show(i.ToString());
-        }
-
-        bool shift = false;
-        bool alt = false;
-        bool q = false;
-
-
         private void hook_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyValue == (int)Keys.LShiftKey)
-            {
-                shift = true;
-            }
-            if (e.KeyValue == 164)
-            {
-                alt = true;
-            }
 
-            if (e.KeyValue == (int)Keys.Q)
-            {
-                q = true;
-            }
-            //if (e.KeyValue == (int)Keys.Q && (int)System.Windows.Forms.Control.ModifierKeys == (int)Keys.Alt)
-            if (shift && alt && q)
+            if (e.KeyValue == (int)Keys.F1 && (int)System.Windows.Forms.Control.ModifierKeys == (int)Keys.Alt)
             {
                 this.IsShowForm = !this.IsShowForm;
-                shift = false;
-                alt = false;
-                q = false;
+
             }
         }
 
