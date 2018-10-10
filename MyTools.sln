@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Translate", "Translate\Translate.csproj", "{A1EE3054-5646-4421-B75D-4B67CDE1ABD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallService", "InstallService\InstallService.csproj", "{827964CF-829B-4587-98B7-B2ACDFAA5B29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{A1EE3054-5646-4421-B75D-4B67CDE1ABD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1EE3054-5646-4421-B75D-4B67CDE1ABD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1EE3054-5646-4421-B75D-4B67CDE1ABD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{827964CF-829B-4587-98B7-B2ACDFAA5B29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{827964CF-829B-4587-98B7-B2ACDFAA5B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{827964CF-829B-4587-98B7-B2ACDFAA5B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{827964CF-829B-4587-98B7-B2ACDFAA5B29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
