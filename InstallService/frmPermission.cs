@@ -126,6 +126,7 @@ namespace InstallService
                     long l = 0;
                     int order = 1;
                     string xml = "";
+                    int hierarchy = 0; //层级
                     if (tnLast != null)
                     {
                         xml = tnLast.Tag.ToString();
@@ -180,7 +181,12 @@ namespace InstallService
 
             foreach (TreeNode item in listAll)
             {
-                strXml += item.Tag.ToString().Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
+                string str = item.Tag.ToString();
+                if (str.IndexOf("Hierarchy=") < 0)
+                {
+                   str =  str.Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
+                }
+                strXml += str;
                 GetChildNodeTag(item,ref strXml);
             }
             strXml += "</Permission>";
@@ -201,7 +207,12 @@ namespace InstallService
             {
                 foreach (TreeNode item in node.Nodes)
                 {
-                    strXml += item.Tag.ToString().Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
+                    string str = item.Tag.ToString();
+                    if (str.IndexOf("Hierarchy=") < 0)
+                    {
+                        str = str.Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
+                    }
+                    strXml += str;
                     GetChildNodeTag(item, ref strXml);
                 }
             }
