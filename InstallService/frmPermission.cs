@@ -67,18 +67,18 @@ namespace InstallService
                 XmlNode valNode = item.Attributes["ParentId"];
                 if (valNode.Value == "0")
                 {
-                    TreeNode nodeChild = InitTreeNode(item);
+                    TreeNode nodeChild = InitTreeNode(item,0);
                     tvPermission.Nodes.Add(nodeChild);
-                    LoadChildNode(xnl, nodeChild, item.Attributes["ID"].Value);
+                    LoadChildNode(xnl, nodeChild, item.Attributes["ID"].Value,0);
                 }
 
 
             }
         }
 
-        private TreeNode InitTreeNode(XmlNode item)
+        private TreeNode InitTreeNode(XmlNode item,int Hierarchy)
         {
-            return InitTreeNode(item.InnerText + "_" + item.Attributes["ID"].Value,item.OuterXml);
+            return InitTreeNode(item.InnerText + "_" + item.Attributes["ID"].Value + "_" + Hierarchy, item.OuterXml);
         }
         private TreeNode InitTreeNode(string name,string OuterXml)
         {
@@ -90,17 +90,19 @@ namespace InstallService
 
 
 
-            private void LoadChildNode(XmlNodeList xnl, TreeNode node ,string ItemId)
+        private void LoadChildNode(XmlNodeList xnl, TreeNode node, string ItemId, int Hierarchy)
         {
+
+            int curHie = Hierarchy + 1;
             foreach (XmlNode item in xnl)
             {
                 XmlNode valNode = item.Attributes["ParentId"];
-               
+
                 if (valNode.Value == ItemId)
                 {
-                    TreeNode nodeChild = InitTreeNode(item);
+                    TreeNode nodeChild = InitTreeNode(item, curHie);
                     node.Nodes.Add(nodeChild);
-                    LoadChildNode(xnl,nodeChild, item.Attributes["ID"].Value);
+                    LoadChildNode(xnl, nodeChild, item.Attributes["ID"].Value, curHie);
                 }
 
             }
@@ -178,7 +180,7 @@ namespace InstallService
 
             foreach (TreeNode item in listAll)
             {
-                strXml += item.Tag.ToString() + "\r\n";
+                strXml += item.Tag.ToString().Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
                 GetChildNodeTag(item,ref strXml);
             }
             strXml += "</Permission>";
@@ -199,15 +201,37 @@ namespace InstallService
             {
                 foreach (TreeNode item in node.Nodes)
                 {
-                    strXml += item.Tag.ToString() + "\r\n";
+                    strXml += item.Tag.ToString().Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
                     GetChildNodeTag(item, ref strXml);
                 }
             }
         }
 
+        private void frmPermission_Load(object sender, EventArgs e)
+        {
+
+
+            List<NodeParam> list = new List<NodeParam>();
+            list.Add(new NodeParam() {
+                TestText = "abc"
+            });
+            list.Add(new NodeParam()
+            {
+                TestText = "ab"
+            });
+            list.Add(new NodeParam()
+            {
+                TestText = "ddd"
+            });
+
+            List<string> bb = new List<string>();
+            bb.Add(list.Where(m => m.TestText == "aaaa").FirstOrDefault()?.TestText);
+
+            bool b = bb.Contains("111");
 
 
 
+        }
     }
 
     public class NodeParam
@@ -224,6 +248,10 @@ namespace InstallService
         /// 存放上级Node
         /// </summary>
         public TreeNode TreeParentNode { get; set; }
+
+
+        public string TestText { get; set; }
+
 
     }
 

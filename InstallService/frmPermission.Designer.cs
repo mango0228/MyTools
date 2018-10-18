@@ -103,6 +103,7 @@
             this.Controls.Add(this.tvPermission);
             this.Name = "frmPermission";
             this.Text = "配置权限xml";
+            this.Load += new System.EventHandler(this.frmPermission_Load);
             this.tvMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
