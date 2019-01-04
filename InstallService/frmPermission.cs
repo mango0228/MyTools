@@ -61,8 +61,21 @@ namespace InstallService
             xml.Load("Company.xml");
 
             XmlNodeList xnl = xml.GetElementsByTagName("Item");
+
+            Dictionary<string,string> liRep = new Dictionary<string, string>(); //用于检测ID 是否有重复
+
             foreach (XmlNode item in xnl)
             {
+                try
+                {
+                    liRep.Add(item.Attributes["ID"].Value.ToString(), item.InnerText);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(item.Attributes["ID"].Value.ToString()+"重复....请检查。");
+                    break;
+                }
+
                 //Console.WriteLine(xnl.Item(i).InnerXml);
                 XmlNode valNode = item.Attributes["ParentId"];
                 if (valNode.Value == "0")
@@ -74,6 +87,14 @@ namespace InstallService
 
 
             }
+
+            
+
+
+
+
+
+
         }
 
         private TreeNode InitTreeNode(XmlNode item,int Hierarchy)
@@ -116,6 +137,20 @@ namespace InstallService
             frm.ShowDialog();
 
             string addName = this.AddNodeName;
+            //AccountGameMg/UpdateGameModel
+
+            string strController = "";
+            string strAction = "";
+            string strLink = "";
+
+            if (this.AddStrLink != "")
+            {
+                strLink = "/" + this.AddStrLink;
+                strController = this.AddStrLink.Split('/')[0];
+                strAction = this.AddStrLink.Split('/')[1];
+            }
+
+
             if (addName != "")
             {
                 TreeNode node = (sender as ToolStripMenuItem).GetCurrentParent().Tag as TreeNode;
@@ -141,25 +176,25 @@ namespace InstallService
 
                     xml = node.Tag.ToString();
                     long ParentId = long.Parse(GetXmlNodeStringByAttribute(xml, "ID"));
-                    string tagString = "<Item ID=\"" + l.ToString() + "\" ParentId=\"" + ParentId + "\" Order=\"" + order + "\">" + addName + "</Item>";
-                    Clipboard.SetDataObject(l.ToString()); //复制新增的ItemId 到粘贴板
+                    hierarchy = int.Parse(GetXmlNodeStringByAttribute(xml, "Hierarchy")) + 1; //层级
+                    string tagString = "<Item ID=\"" + l.ToString() + "\" Hierarchy=\""+hierarchy+"\" ParentId=\"" + ParentId + "\" Order=\"" + order + "\" Remark=\"New\" Controller=\""+strController+"\" Action=\""+strAction+"\" Link=\""+strLink+"\">" + addName + "</Item>";
+                    string copystr = "[PermissionAccountFilter(ItemIdByChildCompany = \"" + l.ToString() + "\")]";
+                    Clipboard.SetDataObject(copystr); //复制新增的ItemId 到粘贴板
                     NewListItem.Add(tagString);
 
-                    TreeNode nodeChild = InitTreeNode(addName + "_" + l.ToString(), tagString);
+                    TreeNode nodeChild = InitTreeNode(addName + "_" + l.ToString()+"_"+ hierarchy.ToString(), tagString);
                     node.Nodes.Add(nodeChild);
 
                 }
             }
-
-
-
-           
         }
 
         public string AddNodeName { get; set; }
-        private void SetNodeName(string name)
+        public string AddStrLink { get; set; }
+        private void SetNodeName(string name,string strLink)
         {
             this.AddNodeName = name;
+            this.AddStrLink = strLink;
         }
 
         private void tvPermission_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -177,26 +212,34 @@ namespace InstallService
 
            TreeNodeCollection listAll =  tvPermission.Nodes;
 
-            string strXml = "<?xml version=\"1.0\" encoding=\"utf - 8\" ?>\r\n< Permission > ";
+            string strXml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"+ Environment.NewLine + "<Permission>"+Environment.NewLine;
 
             foreach (TreeNode item in listAll)
             {
                 string str = item.Tag.ToString();
                 if (str.IndexOf("Hierarchy=") < 0)
                 {
-                   str =  str.Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
+                   str =  str.Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=");
                 }
-                strXml += str;
+                strXml += str+Environment.NewLine;
                 GetChildNodeTag(item,ref strXml);
             }
             strXml += "</Permission>";
 
 
-            FileStream fs = new FileStream("Company222.xml", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            string fileName = "Company.xml";
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+            FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             StreamWriter sw = new StreamWriter(fs,Encoding.UTF8);
             fs.SetLength(0);//首先把文件清空了。
-            sw.Write(strXml);//写你的字符串。
+            sw.WriteLine(strXml);//写你的字符串。
             sw.Close();
+
+            MessageBox.Show("保存成功.");
+
 
         }
 
@@ -210,9 +253,9 @@ namespace InstallService
                     string str = item.Tag.ToString();
                     if (str.IndexOf("Hierarchy=") < 0)
                     {
-                        str = str.Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=") + "\r\n";
+                        str = str.Replace("ParentId=", "Hierarchy=\"" + item.Text.Split('_')[2] + "\" ParentId=");
                     }
-                    strXml += str;
+                    strXml += str + Environment.NewLine;
                     GetChildNodeTag(item, ref strXml);
                 }
             }

@@ -35,6 +35,7 @@
             this.新增节点ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lblItem = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.tvMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -43,9 +44,9 @@
             this.tvPermission.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tvPermission.Location = new System.Drawing.Point(3, 83);
+            this.tvPermission.Location = new System.Drawing.Point(3, 97);
             this.tvPermission.Name = "tvPermission";
-            this.tvPermission.Size = new System.Drawing.Size(704, 538);
+            this.tvPermission.Size = new System.Drawing.Size(773, 610);
             this.tvPermission.TabIndex = 0;
             this.tvPermission.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvPermission_NodeMouseClick);
             // 
@@ -76,7 +77,7 @@
             // lblItem
             // 
             this.lblItem.AutoSize = true;
-            this.lblItem.Location = new System.Drawing.Point(12, 50);
+            this.lblItem.Location = new System.Drawing.Point(12, 77);
             this.lblItem.Name = "lblItem";
             this.lblItem.Size = new System.Drawing.Size(47, 12);
             this.lblItem.TabIndex = 2;
@@ -92,11 +93,20 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(339, 12);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(426, 50);
+            this.textBox1.TabIndex = 4;
+            // 
             // frmPermission
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(708, 621);
+            this.ClientSize = new System.Drawing.Size(777, 707);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.lblItem);
             this.Controls.Add(this.button1);
@@ -118,5 +128,6 @@
         private System.Windows.Forms.ToolStripMenuItem 新增节点ToolStripMenuItem;
         private System.Windows.Forms.Label lblItem;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TextBox textBox1;
     }
 }

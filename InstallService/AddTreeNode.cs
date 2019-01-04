@@ -11,7 +11,7 @@ using System.Windows.Forms;
 namespace InstallService
 {
 
-    public delegate void DelegateParam(string NodeName);
+    public delegate void DelegateParam(string NodeName,string StrLink);
 
 
     public partial class AddTreeNode : Form
@@ -33,7 +33,7 @@ namespace InstallService
             if (myDelMsg != null)
             {
                 //调用
-                myDelMsg(txtNodeName.Text);
+                myDelMsg(txtNodeName.Text.Trim(),txtlink.Text.Trim());
                 this.Close();
             }
         }
@@ -41,6 +41,7 @@ namespace InstallService
         private void AddTreeNode_Load(object sender, EventArgs e)
         {
             this.txtNodeName.Text = "";
+            this.txtlink.Text = "";
         }
 
         private void button2_Click(object sender, EventArgs e)

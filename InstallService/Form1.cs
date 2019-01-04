@@ -138,7 +138,7 @@ namespace InstallService
             string[] strFiles = Directory.GetFiles(textBox1.Text.Trim(), "*", SearchOption.AllDirectories);
 
             string[] strExeServiceName = { "CommonTimerService.exe", "BalanceService.exe", "Official.Bet.Service.exe", "OfficialAccountService.exe",
-                "OfficialAutoPayment.exe", "OfficialCacheService.exe", "OfficialOrderWinService.exe", "OfficialPeriodService.exe", "OfficialReportService.exe", "OfficialSettlementService.exe"};
+                "OfficialAutoPayment.exe", "OfficialCacheService.exe", "OfficialOrderWinService.exe", "OfficialPeriodService.exe", "OfficialReportService.exe", "OfficialSettlementService.exe","PayService.exe"};
 
             List<string> installArray = new List<string>();
             foreach (string item in strFiles)
@@ -176,14 +176,40 @@ namespace InstallService
                 ServiceName = "Official" + ServiceName;
             }
             ServiceName = ServiceName.Replace(".","");
-
+            ServiceName += "_"+txtVersion.Text.Trim();
             //string path = AppDomain.CurrentDomain.BaseDirectory;
             //path = @"D:\WorkCode\LXService\OfficialReportService\bin\Debug\OfficialReportService.exe";
             Process.Start("sc", "create " + ServiceName + " binpath= \"" + path + "\" displayName= "+ServiceName+" start= auto");
 
         }
 
+        private void button7_Click(object sender, EventArgs e)
+        {
+            var selrow = this.dataGridView1.SelectedRows;
+            if (selrow != null && selrow.Count > 0 && MessageBox.Show("确定停止服务吗？","提示", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                string ServiceName = selrow[0].Cells[0].Value.ToString();
+                RunCmd("net stop " + ServiceName);
+            }
+            else
+            {
+                MessageBox.Show("没有选中.");
+            }
+        }
 
+        private void button8_Click(object sender, EventArgs e)
+        {
+            var selrow = this.dataGridView1.SelectedRows;
+            if (selrow != null && selrow.Count > 0 && MessageBox.Show("确定删除服务吗？", "提示", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                string ServiceName = selrow[0].Cells[0].Value.ToString();
+                RunCmd("sc delete " + ServiceName);
+            }
+            else
+            {
+                MessageBox.Show("没有选中.");
+            }
+        }
     }
 
 
