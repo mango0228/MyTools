@@ -182,6 +182,9 @@ namespace Mgo.SocketCommon
             byte[] bytesend = Encoding.UTF8.GetBytes(msgStr);
             byte[] lengByte = BitConverter.GetBytes(bytesend.Length);
             Console.WriteLine($"客户端发包长度是:{bytesend.Length}");
+
+
+
             byte[] send = new byte[bytesend.Length + lengByte.Length];
             for (int i = 0; i < lengByte.Length; i++)
             {

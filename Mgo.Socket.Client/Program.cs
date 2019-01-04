@@ -36,10 +36,10 @@ namespace Mgo.Socket.Client
 
             List<string> sendStr = new List<string>();
 
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < 10; i++)
             {
                 Random r = new Random();
-                int a = r.Next(1, 5000);
+                int a = r.Next(1, 50);
                 sendStr.Add(GetRandomString(a, true, true, true, false, ""));
                 System.Threading.Thread.Sleep(20);
             }
@@ -57,10 +57,13 @@ namespace Mgo.Socket.Client
             });
 
 
+
+
+
             Console.ReadLine();
             client.Close();
 
-
+            
 
 
             //while (true)

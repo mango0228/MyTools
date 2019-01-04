@@ -11,7 +11,7 @@ namespace Mgo.Socket.Server
         static void Main(string[] args)
         {
             //创建服务器对象，默认监听本机0.0.0.0，14524
-            SocketServer server = new SocketServer(14524);
+            SocketServer server = new SocketServer(14521);
 
             //处理从客户端收到的消息
             server.HandleRecMsg = new Action<byte[], SocketConnection, SocketServer>((bytes, conn, theServer) =>
@@ -37,6 +37,8 @@ namespace Mgo.Socket.Server
                             {
                                 string msgAll = Encoding.UTF8.GetString(item.ToArray());
                                 Console.WriteLine($"收到来自【{ conn.ClientIp }】的消息:{msgAll }");
+                                conn.Send($"服务端收到消息：【{ msgAll }】");
+
                             }
                         }
                     }
