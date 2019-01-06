@@ -1,7 +1,9 @@
 ﻿using Mgo.SocketCommon;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,23 +14,74 @@ namespace Mgo.Socket.Client
         static void Main(string[] args)
         {
             //创建客户端对象，默认连接本机127.0.0.1,14524
-            SocketClient client = new SocketClient(14524);
+            SocketClient client = new SocketClient(14521);
 
             //绑定当收到服务器发送的消息后的处理事件
             client.HandleRecMsg = new Action<byte[], SocketClient>((bytes, theClient) =>
             {
-                string msg = Encoding.UTF8.GetString(bytes);
-                Console.WriteLine($"收到消息:{msg}");
+
+                if (bytes != null && bytes.Length > 0)
+                {
+
+                    //缓冲区有剩余包
+                    List<byte> bufferList = new List<byte>();
+                    while (!theClient.BufferByte.IsEmpty)
+                    {
+                        byte b = 0;
+                        if (theClient.BufferByte.TryDequeue(out b))
+                        {
+                            bufferList.Add(b);
+                        }
+                    }
+                    //包的字节数据
+                    List<byte> bytesContent = new List<byte>();
+
+                    //把剩余的包字节跟新的包合并起来
+                    if (bufferList.Count > 0)
+                    {
+                        //把缓冲区的字节拿出来放到新收到字节的前面
+                        bytesContent = bufferList.Concat(bytes).ToList();
+                    }
+                    else
+                    {
+                        bytesContent = bytes.ToList();
+                    }
+
+                    //此类可以共用一下.
+                    IpByteData ibda = new IpByteData();
+                    ibda.SetBytes(bytesContent.ToArray());
+                    //多余的包字节缓冲起来
+                    if (ibda.RemainingBytes.Count > 0)
+                    {
+                        for (int i = 0; i < ibda.RemainingBytes.Count; i++)
+                        {
+                            theClient.BufferByte.Enqueue(ibda.RemainingBytes[i]);
+                        }
+                    }
+                    //解压完整的包
+                    if (ibda.BytesComplete.Count > 0)
+                    {
+                        foreach (List<byte> item in ibda.BytesComplete)
+                        {
+                            string requestKey = "";
+                            string responseContent = "";
+                            IpByteData.GetContentAndRequetKey(item.ToArray(),out requestKey, out responseContent);
+                            //万一没加入成功，则开奖失败， 
+                            client.ResponseContent.TryAdd(requestKey, responseContent);
+                            
+                        }
+                    }
+                }
             });
 
             //绑定向服务器发送消息后的处理事件
             client.HandleSendMsg = new Action<byte[], SocketClient>((bytes, theClient) =>
             {
-                byte[] b = new byte[bytes.Length - 4];
-                Array.Copy(bytes, 4, b, 0, b.Length);
+               // byte[] b = new byte[bytes.Length - 4];
+               // Array.Copy(bytes, 4, b, 0, b.Length);
 
-                string msg = Encoding.UTF8.GetString(b);
-                Console.WriteLine($"向服务器发送消息:{msg}");
+               // string msg = Encoding.UTF8.GetString(b);
+               // Console.WriteLine($"向服务器发送消息:{msg}");
             });
 
             //开始运行客户端
@@ -36,7 +89,7 @@ namespace Mgo.Socket.Client
 
             List<string> sendStr = new List<string>();
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 50; i++)
             {
                 Random r = new Random();
                 int a = r.Next(1, 50);
@@ -45,15 +98,40 @@ namespace Mgo.Socket.Client
             }
 
 
-            //foreach (var item in sendStr)
-            //{
-            //    client.Send(item);
-            //    System.Threading.Thread.Sleep(100);
-            //}
+            // client.Send(item, Guid.NewGuid().ToString("N"));
+            // client.SyncGetResponseContent();
 
 
-            Parallel.ForEach(sendStr, (item) => {
-                client.Send(item);
+            foreach (var item in sendStr)
+            {
+                //string key = Guid.NewGuid().ToString("N");
+                Stopwatch sp = new Stopwatch();
+                sp.Start();
+                string c = client.SendToSyncGetResponseContent(item);
+                sp.Stop();
+                Console.WriteLine(c + "【timer:" + sp.ElapsedMilliseconds + "】");
+
+                // string c = client.SyncGetResponseContent(key);
+                // Console.WriteLine(c);
+                //System.Threading.Thread.Sleep(50);
+            }
+
+            Console.WriteLine("-========================================================>>>接下来并发版本.");
+
+
+            Parallel.ForEach(sendStr, (item) =>
+            {
+
+                //client.Send(item, Guid.NewGuid().ToString("N"));
+                //client.SyncGetResponseContent();
+
+                Stopwatch sp = new Stopwatch();
+                sp.Start();
+                string c = client.SendToSyncGetResponseContent(item);
+                sp.Stop();
+                Console.WriteLine(c + "【timer:" + sp.ElapsedMilliseconds + "】");
+
+
             });
 
 

@@ -108,10 +108,30 @@ namespace Mgo.SocketCommon
         {
             byte[] content = new byte[leng];
             Array.Copy(bytes, start, content, 0, leng);
-            
-           
-
         }
+
+        /// <summary>
+        /// 只有带请求key的才能使用此方法转换[UTF-8编码]
+        /// </summary>
+        /// <param name="bytes">响应字节（完整包不含包头）</param>
+        /// <param name="key">转换后的key字符串</param>
+        /// <param name="Content">转换后的内容字符串</param>
+        public static void GetContentAndRequetKey(byte[] bytes, out string key, out string content)
+        {
+            byte[] bykey = new byte[32];
+            byte[] bycontent = new byte[bytes.Length - 32];
+
+            Array.Copy(bytes, 0, bykey, 0, bykey.Length);
+            key = Encoding.UTF8.GetString(bykey);
+
+            Array.Copy(bytes, bykey.Length, bycontent, 0, bycontent.Length);
+            content = Encoding.UTF8.GetString(bycontent);
+        }
+
+
+
+
+
 
 
 

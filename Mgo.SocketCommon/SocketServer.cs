@@ -26,29 +26,6 @@ namespace Mgo.SocketCommon
 
 
         /// <summary>
-        /// 清除缓冲区中的字节
-        /// </summary>
-        /// <param name="ip"></param>
-        /// <param name="isAllIp"></param>
-        public void ClearBufferByte(string ip, bool isAllIp = false)
-        {
-            if (isAllIp)
-            {
-                BufferByte.Clear();
-            }
-            else
-            {
-                if (BufferByte.ContainsKey(ip))
-                {
-                    List<byte> list = new List<byte>();
-                    BufferByte.TryRemove(ip, out list);
-                }
-            }
-        }
-
-
-
-        /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ip">监听的IP地址</param>
@@ -268,6 +245,11 @@ namespace Mgo.SocketCommon
         /// 异常处理程序
         /// </summary>
         public Action<Exception> HandleException { get; set; }
+
+
+
+        public Action<string,string, SocketConnection> ResponseContent { get; set; }
+
 
         #endregion
 

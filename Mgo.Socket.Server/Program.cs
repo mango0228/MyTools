@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Threading;
 
 namespace Mgo.Socket.Server
 {
@@ -10,6 +11,26 @@ namespace Mgo.Socket.Server
     {
         static void Main(string[] args)
         {
+
+            //for (int i = 0; i < 100; i++)
+            //{
+            //    string s = Guid.NewGuid().ToString("N");
+            //    byte[] by = Encoding.UTF8.GetBytes(s);
+            //    Console.Write(by.Length + " : ");
+            //    foreach (var item in by)
+            //    {
+            //        Console.Write(item);
+            //    }
+            //    Console.WriteLine();
+            //    Thread.Sleep(10);
+            //}
+
+            //Console.ReadLine();
+
+
+
+
+
             //创建服务器对象，默认监听本机0.0.0.0，14524
             SocketServer server = new SocketServer(14521);
 
@@ -36,8 +57,13 @@ namespace Mgo.Socket.Server
                             foreach (List<byte> item in ibda.BytesComplete)
                             {
                                 string msgAll = Encoding.UTF8.GetString(item.ToArray());
-                                Console.WriteLine($"收到来自【{ conn.ClientIp }】的消息:{msgAll }");
-                                conn.Send($"服务端收到消息：【{ msgAll }】");
+                                //Console.WriteLine($"收到来自【{ conn.ClientIp }】的消息:{msgAll }");
+                                //conn.Send(msgAll);
+
+                                string requestKey = "";
+                                string responseContent = "";
+                                IpByteData.GetContentAndRequetKey(item.ToArray(), out requestKey, out responseContent);
+                                server.ResponseContent.Invoke(requestKey, responseContent, conn);
 
                             }
                         }
@@ -87,7 +113,7 @@ namespace Mgo.Socket.Server
 
 
 
-                // conn.Send("服务端收到消息,完毕!");
+                 //conn.Send("服务端收到消息,完毕!");
                 // Console.WriteLine($"收到来自【{ conn.ClientIp }】的消息:{msgAll},发包长度是：" + leng);
 
 
@@ -117,8 +143,23 @@ namespace Mgo.Socket.Server
                 Console.WriteLine(ex.Message);
             });
 
+
+            server.ResponseContent = new Action<string, string, SocketConnection>((key,content,conn) =>
+            {
+                Console.WriteLine($"收到客户端数据：key={key},content={content}");
+                conn.Send(key + content);
+                
+
+            });
+
+
+
             //服务器启动
             server.StartServer();
+
+
+
+
 
             while (true)
             {

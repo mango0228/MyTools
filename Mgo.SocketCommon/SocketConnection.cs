@@ -143,7 +143,19 @@ namespace Mgo.SocketCommon
         /// <param name="msgStr">字符串</param>
         public void Send(string msgStr)
         {
-            Send(Encoding.UTF8.GetBytes(msgStr));
+
+            //加入包长.
+            byte[] bytesend = Encoding.UTF8.GetBytes(msgStr);
+            byte[] lengByte = BitConverter.GetBytes(bytesend.Length);
+
+
+            ////把包长度加入发送包中.
+            byte[] send = new byte[bytesend.Length + lengByte.Length];
+            Array.Copy(lengByte, 0, send, 0, lengByte.Length);
+            Array.Copy(bytesend, 0, send, lengByte.Length, bytesend.Length);
+
+            Send(send);
+
         }
 
         /// <summary>

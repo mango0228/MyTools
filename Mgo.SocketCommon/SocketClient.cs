@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -10,6 +12,19 @@ namespace Mgo.SocketCommon
     /// </summary>
     public class SocketClient
     {
+
+
+
+        /// <summary>
+        /// 缓冲接收的包
+        /// </summary>
+        public ConcurrentQueue<byte> BufferByte = new ConcurrentQueue<byte>();
+
+
+        public ConcurrentDictionary<string, string> ResponseContent = new ConcurrentDictionary<string, string>();
+
+
+
         #region 构造函数
 
         /// <summary>
@@ -173,29 +188,53 @@ namespace Mgo.SocketCommon
             }
         }
 
+
         /// <summary>
         /// 发送字符串（默认使用UTF-8编码）
         /// </summary>
-        /// <param name="msgStr">字符串</param>
-        public void Send(string msgStr)
+        /// <param name="msgStr">发送的字符串</param>
+        /// <param name="guidToN">请求唯一编码【用于后续获取响应的消息，请使用固定32字节的字符串建议使用Guid.ToString("N")的方式赋值】</param>
+        public void Send(string msgStr,string guidToN)
         {
+            msgStr = guidToN + msgStr;
+            //加入包长.
             byte[] bytesend = Encoding.UTF8.GetBytes(msgStr);
             byte[] lengByte = BitConverter.GetBytes(bytesend.Length);
-            Console.WriteLine($"客户端发包长度是:{bytesend.Length}");
-
-
-
+            
+            ////把包长度加入发送包中.
             byte[] send = new byte[bytesend.Length + lengByte.Length];
-            for (int i = 0; i < lengByte.Length; i++)
-            {
-                send[i] = lengByte[i];
-            }
-            for (int j = 0; j < bytesend.Length; j++)
-            {
-                send[lengByte.Length + j] = bytesend[j];
-            }
+            Array.Copy(lengByte, 0, send, 0, lengByte.Length);
+            Array.Copy(bytesend, 0, send, lengByte.Length, bytesend.Length);
+
             Send(send);
         }
+
+
+        /// <summary>
+        /// 发送字符串（默认使用UTF-8编码）
+        /// </summary>
+        /// <param name="msgStr">发送的字符串</param>
+        /// <param name="guidToN">请求唯一编码【用于后续获取响应的消息，请使用固定32字节的字符串建议使用Guid.ToString("N")的方式赋值】</param>
+        public string SendToSyncGetResponseContent(string msgStr)
+        {
+            string requestKey = Guid.NewGuid().ToString("N");
+            //加入包长.
+            byte[] bytesend = Encoding.UTF8.GetBytes(requestKey + msgStr);
+            byte[] lengByte = BitConverter.GetBytes(bytesend.Length);
+
+            ////把包长度加入发送包中.
+            byte[] send = new byte[bytesend.Length + lengByte.Length];
+            Array.Copy(lengByte, 0, send, 0, lengByte.Length);
+            Array.Copy(bytesend, 0, send, lengByte.Length, bytesend.Length);
+            Send(send);
+
+            return SyncGetResponseContent(requestKey);
+        }
+
+
+
+
+
 
         /// <summary>
         /// 发送字符串（使用自定义编码）
@@ -206,6 +245,28 @@ namespace Mgo.SocketCommon
         {
             Send(encoding.GetBytes(msgStr));
         }
+
+
+
+        public string SyncGetResponseContent(string requestKey, int timeOut = 3000)
+        {
+            string content = "";
+            this.ResponseContent.TryRemove(requestKey, out content);
+            int timer = 0;
+            while (string.IsNullOrEmpty(content))
+            {
+                System.Threading.Thread.Sleep(5);
+                this.ResponseContent.TryRemove(requestKey, out content);
+                if (timer > timeOut)
+                {
+                    break;
+                }
+                timer += 5;
+            }
+            return content;
+        }
+
+
 
         /// <summary>
         /// 传入自定义属性
