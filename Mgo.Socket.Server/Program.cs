@@ -105,16 +105,7 @@ namespace Mgo.Socket.Server
 
                     }
 
-
-
-
                 }
-
-
-
-
-                 //conn.Send("服务端收到消息,完毕!");
-                // Console.WriteLine($"收到来自【{ conn.ClientIp }】的消息:{msgAll},发包长度是：" + leng);
 
 
             });
@@ -151,8 +142,6 @@ namespace Mgo.Socket.Server
                 
 
             });
-
-
 
             //服务器启动
             server.StartServer();

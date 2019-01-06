@@ -87,6 +87,11 @@ namespace Mgo.Socket.Client
             //开始运行客户端
             client.StartClient();
 
+            //string c = client.SendToSyncGetResponseContent(item);
+
+
+
+
             List<string> sendStr = new List<string>();
 
             for (int i = 0; i < 50; i++)
