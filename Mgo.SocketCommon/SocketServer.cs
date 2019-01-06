@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 
 namespace Mgo.SocketCommon
@@ -26,6 +27,115 @@ namespace Mgo.SocketCommon
 
 
         /// <summary>
+        /// 初始化事件
+        /// </summary>
+        private void InitServer()
+        {
+
+            //处理从客户端收到的消息
+            this.HandleRecMsg = new Action<byte[], SocketConnection, SocketServer>((bytes, conn, theServer) =>
+            {
+                string keyip = conn.ClientIp;
+                if (bytes != null && bytes.Length > 0)
+                {
+                    //此类可以共用一下.
+                    IpByteData ibda = new IpByteData();
+
+                    if (!theServer.BufferByte.ContainsKey(keyip))
+                    {
+                        ibda.SetBytes(bytes);
+                        //多余的包字节缓冲起来
+                        if (ibda.RemainingBytes.Count > 0)
+                        {
+                            theServer.BufferByte.TryAdd(keyip, ibda.RemainingBytes);
+                        }
+                        //解压完整的包
+                        if (ibda.BytesComplete.Count > 0)
+                        {
+                            foreach (List<byte> item in ibda.BytesComplete)
+                            {
+                                string msgAll = Encoding.UTF8.GetString(item.ToArray());
+                                //Console.WriteLine($"收到来自【{ conn.ClientIp }】的消息:{msgAll }");
+                                //conn.Send(msgAll);
+
+                                string requestKey = "";
+                                string responseContent = "";
+                                IpByteData.GetContentAndRequetKey(item.ToArray(), out requestKey, out responseContent);
+                                theServer.ResponseContent.Invoke(requestKey, responseContent, conn);
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //如果存在缓冲。 则需要先把缓冲里面的字节拿出来。
+                        List<byte> listBufferByte = new List<byte>();
+                        if (theServer.BufferByte.TryRemove(keyip, out listBufferByte))
+                        {
+                            //把缓冲区的字节拿出来放到新收到字节的前面
+                            byte[] bufferBytes = listBufferByte.ToArray();
+                            byte[] allBytes = bufferBytes.Concat(bytes).ToArray();
+                            ibda.SetBytes(allBytes);
+
+                            //多余的包字节缓冲起来
+                            if (ibda.RemainingBytes.Count > 0)
+                            {
+                                theServer.BufferByte.TryAdd(keyip, ibda.RemainingBytes);
+                            }
+                            //解压完整的包
+                            if (ibda.BytesComplete.Count > 0)
+                            {
+                                foreach (List<byte> item in ibda.BytesComplete)
+                                {
+                                    string msgAll = Encoding.UTF8.GetString(item.ToArray());
+                                    Console.WriteLine($"收到来自【{ conn.ClientIp }】的消息【缓冲区】:{msgAll}");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (theServer.BufferByte.ContainsKey(keyip))
+                            {
+                                //把byte 继续缓冲起来。
+                                theServer.BufferByte[keyip].AddRange(bytes);
+                            }
+                        }
+
+                    }
+
+                }
+
+
+            });
+
+            //处理服务器启动后事件
+            this.HandleServerStarted = new Action<SocketServer>(theServer =>
+            {
+                Console.WriteLine("服务已启动************");
+            });
+
+            //处理新的客户端连接后的事件
+            this.HandleNewClientConnected = new Action<SocketServer, SocketConnection>((theServer, theCon) =>
+            {
+                Console.WriteLine($@"一个新的客户端接入，当前连接数：{theServer.GetConnectionCount()}");
+            });
+
+            //处理客户端连接关闭后的事件
+            this.HandleClientClose = new Action<SocketConnection, SocketServer>((theCon, theServer) =>
+            {
+                Console.WriteLine($@"一个客户端关闭，当前连接数为：{theServer.GetConnectionCount()}");
+            });
+
+            //处理异常
+            this.HandleException = new Action<Exception>(ex =>
+            {
+                Console.WriteLine(ex.Message);
+            });
+        }
+
+
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="ip">监听的IP地址</param>
@@ -42,7 +152,7 @@ namespace Mgo.SocketCommon
         /// <param name="port">监听的端口</param>
         public SocketServer(int port)
         {
-            _ip = "10.10.24.25";
+            _ip = "127.0.0.1";
             _port = port;
         }
 
@@ -107,6 +217,7 @@ namespace Mgo.SocketCommon
         {
             try
             {
+                InitServer();
                 //实例化套接字（ip4寻址协议，流式传输，TCP协议）
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 //创建ip对象

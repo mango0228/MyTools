@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -23,7 +24,7 @@ namespace Mgo.SocketCommon
 
         public ConcurrentDictionary<string, string> ResponseContent = new ConcurrentDictionary<string, string>();
 
-
+        //public Dictionary<string, string> ResponseContent = new Dictionary<string, string>();
 
         #region 构造函数
 
@@ -33,7 +34,7 @@ namespace Mgo.SocketCommon
         /// <param name="port">监听的端口</param>
         public SocketClient(int port)
         {
-            _ip = "10.10.24.25";
+            _ip = "127.0.0.1";
             _port = port;
         }
 
@@ -77,6 +78,79 @@ namespace Mgo.SocketCommon
             else
                 return true;
         }
+
+
+
+        private void InitClient()
+        {
+            //绑定当收到服务器发送的消息后的处理事件
+            this.HandleRecMsg = new Action<byte[], SocketClient>((bytes, theClient) =>
+            {
+
+                if (bytes != null && bytes.Length > 0)
+                {
+
+                    //缓冲区有剩余包
+                    List<byte> bufferList = new List<byte>();
+                    while (!theClient.BufferByte.IsEmpty)
+                    {
+                        byte b = 0;
+                        if (theClient.BufferByte.TryDequeue(out b))
+                        {
+                            bufferList.Add(b);
+                        }
+                    }
+                    //包的字节数据
+                    List<byte> bytesContent = new List<byte>();
+
+                    //把剩余的包字节跟新的包合并起来
+                    if (bufferList.Count > 0)
+                    {
+                        //把缓冲区的字节拿出来放到新收到字节的前面
+                        bytesContent = bufferList.Concat(bytes).ToList();
+                    }
+                    else
+                    {
+                        bytesContent = bytes.ToList();
+                    }
+
+                    //此类可以共用一下.
+                    IpByteData ibda = new IpByteData();
+                    ibda.SetBytes(bytesContent.ToArray());
+                    //多余的包字节缓冲起来
+                    if (ibda.RemainingBytes.Count > 0)
+                    {
+                        for (int i = 0; i < ibda.RemainingBytes.Count; i++)
+                        {
+                            theClient.BufferByte.Enqueue(ibda.RemainingBytes[i]);
+                        }
+                    }
+                    //解压完整的包
+                    if (ibda.BytesComplete.Count > 0)
+                    {
+                        foreach (List<byte> item in ibda.BytesComplete)
+                        {
+                            string requestKey = "";
+                            string responseContent = "";
+                            IpByteData.GetContentAndRequetKey(item.ToArray(), out requestKey, out responseContent);
+                            //万一没加入成功，则开奖失败， 
+                            theClient.ResponseContent.TryAdd(requestKey, responseContent);
+                           // theClient.ResponseContent.Add(requestKey, responseContent);
+
+                        }
+                    }
+                }
+            });
+
+            //绑定向服务器发送消息后的处理事件
+            this.HandleSendMsg = new Action<byte[], SocketClient>((bytes, theClient) =>
+            {
+                // Console.WriteLine($"向服务器发送消息:{msg}");
+            });
+
+        }
+
+
 
         /// <summary>
         /// 开始接受客户端消息
@@ -132,6 +206,8 @@ namespace Mgo.SocketCommon
         {
             try
             {
+                InitClient();
+
                 //实例化 套接字 （ip4寻址协议，流式传输，TCP协议）
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 //创建 ip对象
@@ -251,8 +327,9 @@ namespace Mgo.SocketCommon
         public string SyncGetResponseContent(string requestKey, int timeOut = 3000)
         {
             string content = "";
-            this.ResponseContent.TryRemove(requestKey, out content);
             int timer = 0;
+            this.ResponseContent.TryRemove(requestKey, out content);
+
             while (string.IsNullOrEmpty(content))
             {
                 System.Threading.Thread.Sleep(5);
@@ -263,6 +340,22 @@ namespace Mgo.SocketCommon
                 }
                 timer += 5;
             }
+
+            //while (!this.ResponseContent.ContainsKey(requestKey))
+            //{
+            //    if (this.ResponseContent.ContainsKey(requestKey))
+            //    {
+            //        content = this.ResponseContent[requestKey];
+            //        this.ResponseContent.Remove(requestKey);
+            //        break;
+            //    }
+            //    if (timer > timeOut)
+            //    {
+            //        break;
+            //    }
+            //    System.Threading.Thread.Sleep(5);
+            //    timer += 5;
+            //}
             return content;
         }
 
