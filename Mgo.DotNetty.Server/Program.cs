@@ -29,7 +29,7 @@ namespace Mgo.DotNetty.Server
             Console.WriteLine($"收到客户端消息:[{ data.Data.ToString() }]");
 
             res.Data = "[" + data.Data.ToString() + "]===>服务端返回的消息";
-
+            res.SerialNumber = data.SerialNumber;
             return res;
 
 

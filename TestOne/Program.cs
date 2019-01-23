@@ -29,7 +29,7 @@ namespace TestOne
 
         static async Task<int> MyMethod()
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 1; i <= 5; i++)
             {
                 Console.WriteLine("Async start:" + i.ToString() + "..");
                 await Task.Delay(1000); //模拟耗时操作
