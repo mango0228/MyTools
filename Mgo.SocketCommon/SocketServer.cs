@@ -152,7 +152,7 @@ namespace Mgo.SocketCommon
         /// <param name="port">监听的端口</param>
         public SocketServer(int port)
         {
-            _ip = "127.0.0.1";
+            _ip = "0.0.0.0";
             _port = port;
         }
 

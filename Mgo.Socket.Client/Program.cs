@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,16 +14,13 @@ namespace Mgo.Socket.Client
     {
         static void Main(string[] args)
         {
-            //创建客户端对象，默认连接本机127.0.0.1,14524
-            SocketClient client = new SocketClient(14521);
+            //创建客户端对象，参数：服务端IP 和 端口
+            SocketClient client = new SocketClient("127.0.0.1", 14521);
             //开始运行客户端
             client.StartClient();
-
-            //string c = client.SendToSyncGetResponseContent(item);
-
-
-
-
+            //发送数据,并返回响应结果【默认3秒超时返回""空字符串】
+            //string num = client.SendToSyncGetResponseContent("发送给开奖程序的数据字符串");
+           
             List<string> sendStr = new List<string>();
 
             for (int i = 0; i < 50; i++)
@@ -34,22 +32,16 @@ namespace Mgo.Socket.Client
             }
 
 
-            // client.Send(item, Guid.NewGuid().ToString("N"));
-            // client.SyncGetResponseContent();
+
 
 
             foreach (var item in sendStr)
             {
-                //string key = Guid.NewGuid().ToString("N");
                 Stopwatch sp = new Stopwatch();
                 sp.Start();
-                string c = client.SendToSyncGetResponseContent(item);
+                var c = client.SendToSyncGetResponseContent(item);
                 sp.Stop();
                 Console.WriteLine(c + "【timer:" + sp.ElapsedMilliseconds + "】");
-
-                // string c = client.SyncGetResponseContent(key);
-                // Console.WriteLine(c);
-                //System.Threading.Thread.Sleep(50);
             }
 
             Console.WriteLine("-========================================================>>>接下来并发版本.");
@@ -57,43 +49,20 @@ namespace Mgo.Socket.Client
 
             Parallel.ForEach(sendStr, (item) =>
             {
-
-                //client.Send(item, Guid.NewGuid().ToString("N"));
-                //client.SyncGetResponseContent();
-
                 Stopwatch sp = new Stopwatch();
                 sp.Start();
-                string c = client.SendToSyncGetResponseContent(item);
+                var c = client.SendToSyncGetResponseContent(item);
                 sp.Stop();
                 Console.WriteLine(c + "【timer:" + sp.ElapsedMilliseconds + "】");
 
 
             });
 
-
-
-
-
-            Console.ReadLine();
+            //关闭连接
             client.Close();
 
-            
+            Console.ReadLine();
 
-
-            //while (true)
-            //{
-            //    Console.WriteLine("输入:quit关闭客户端，输入其它消息发送到服务器");
-            //    string str = Console.ReadLine();
-            //    if (str == "quit")
-            //    {
-            //        client.Close();
-            //        break;
-            //    }
-            //    else
-            //    {
-            //        client.Send(str);
-            //    }
-            //}
         }
 
         #region 5.0 生成随机字符串 + static string GetRandomString(int length, bool useNum, bool useLow, bool useUpp, bool useSpe, string custom)
@@ -124,5 +93,39 @@ namespace Mgo.Socket.Client
             return s;
         }
         #endregion
+    }
+
+   public class TestA
+    {
+        //{
+        //    "Result": "【6e48877798c743f4a5a4ea82d95726aa】 ===》【GailW3Wy】",
+        //  "Id": 23,
+        //  "Exception": null,
+        //  "Status": 5,
+        //  "IsCanceled": false,
+        //  "IsCompleted": true,
+        //  "CreationOptions": 0,
+        //  "AsyncState": null,
+        //  "IsFaulted": false
+        //}
+
+        public string Result { get; set; }
+        public int Id { get; set; }
+        public object Exception { get; set; }
+
+        public int Status { get; set; }
+
+        public bool IsCanceled { get; set; }
+
+        public bool IsCompleted { get; set; }
+
+        public int CreationOptions { get; set; }
+
+        public object AsyncState { get; set; }
+
+        public bool IsFaulted { get; set; }
+
+
+
     }
 }

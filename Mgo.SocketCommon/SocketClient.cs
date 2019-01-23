@@ -332,13 +332,13 @@ namespace Mgo.SocketCommon
 
             while (string.IsNullOrEmpty(content))
             {
-                System.Threading.Thread.Sleep(5);
+                System.Threading.Thread.Sleep(1);
                 this.ResponseContent.TryRemove(requestKey, out content);
                 if (timer > timeOut)
                 {
                     break;
                 }
-                timer += 5;
+                timer += 1;
             }
 
             //while (!this.ResponseContent.ContainsKey(requestKey))
